@@ -291,3 +291,44 @@ class TestModelInference:
 
         pred = pipe.predict(sample)
         assert float(pred[0]) >= 10_000_000  # Should be luxury scale (> ₹1 Cr)
+
+
+# =====================================================================
+# 4. NEARBY ESSENTIALS SERVICE TESTS
+# =====================================================================
+
+class TestNearbyPlaces:
+    def test_haversine_distance_calculation(self):
+        from src.nearby_places import haversine_distance_km
+        # Distance between Mumbai center (19.0760, 72.8777) and nearby point should be ~0 when identical
+        assert haversine_distance_km(19.0760, 72.8777, 19.0760, 72.8777) == 0.0
+
+        # Distance between Mumbai and Pune is ~120-150 km
+        dist = haversine_distance_km(19.0760, 72.8777, 18.5204, 73.8567)
+        assert 110.0 <= dist <= 160.0
+
+    def test_nearby_options_and_distance_definitions(self):
+        from src.nearby_places import NEARBY_ESSENTIALS_OPTIONS, DISTANCE_PREFERENCES
+        assert "No preference" in NEARBY_ESSENTIALS_OPTIONS
+        assert "Supermarket / Grocery Store" in NEARBY_ESSENTIALS_OPTIONS
+        assert "Hospital / Clinic" in NEARBY_ESSENTIALS_OPTIONS
+        assert "Airport" in NEARBY_ESSENTIALS_OPTIONS
+        assert len(NEARBY_ESSENTIALS_OPTIONS) == 13
+
+        assert "Within 1 km" in DISTANCE_PREFERENCES
+        assert "Within 3 km" in DISTANCE_PREFERENCES
+        assert "Within 5 km" in DISTANCE_PREFERENCES
+        assert "Within 10 km" in DISTANCE_PREFERENCES
+
+    def test_fetch_nearby_essentials_no_preference(self):
+        from src.nearby_places import fetch_nearby_essentials
+        res = fetch_nearby_essentials("Mumbai", "No preference")
+        assert res["status"] == "none"
+        assert res["places"] == []
+
+    def test_fetch_nearby_essentials_unknown_city(self):
+        from src.nearby_places import fetch_nearby_essentials
+        res = fetch_nearby_essentials("AtlantisCityXYZ", "Hospital / Clinic")
+        assert res["status"] == "unavailable"
+        assert res["places"] == []
+

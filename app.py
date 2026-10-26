@@ -6,6 +6,12 @@ import joblib
 import pandas as pd
 import streamlit as st
 
+from src.nearby_places import (
+    NEARBY_ESSENTIALS_OPTIONS,
+    DISTANCE_PREFERENCES,
+    fetch_nearby_essentials,
+)
+
 # --------------------------------------------------
 # 1. PROJECT SETTINGS & CONSTANTS
 # --------------------------------------------------
@@ -635,6 +641,81 @@ st.markdown(
         margin-top: 2px;
     }}
 
+    /* Nearby Essentials Results Card */
+    .nearby-card {{
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        margin-top: 18px;
+    }}
+
+    .nearby-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--sage-light);
+        border: 1px solid var(--sage-border);
+        color: var(--green);
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }}
+
+    .nearby-grid {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+    }}
+
+    .nearby-item {{
+        background: #FBFDFB;
+        border: 1px solid var(--sage-border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+
+    .nearby-item:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(45, 90, 67, 0.08);
+        border-color: var(--emerald);
+    }}
+
+    .nearby-name {{
+        font-weight: 700;
+        font-size: 0.94rem;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 4px;
+    }}
+
+    .nearby-addr {{
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.4;
+    }}
+
+    .nearby-dist-tag {{
+        background: var(--sage-light);
+        color: var(--green);
+        border: 1px solid var(--sage-border);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }}
+
     /* Academic Banner */
     .academic-banner {{
         background: var(--card-bg);
@@ -1017,9 +1098,10 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                 unsafe_allow_html=True,
             )
 
-            col1, col2 = st.columns(2, gap="large")
+            # Location & Nearby Essentials specification row
+            loc_col1, loc_col2, loc_col3 = st.columns([1.4, 1.4, 1.0], gap="medium")
 
-            with col1:
+            with loc_col1:
                 default_loc_index = (
                     DATASET_LOCATIONS.index("Mumbai")
                     if "Mumbai" in DATASET_LOCATIONS else 0
@@ -1031,6 +1113,25 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                     help="Select the city where the residential property is situated.",
                 )
 
+            with loc_col2:
+                nearby_essential = st.selectbox(
+                    "Nearby Essentials",
+                    NEARBY_ESSENTIALS_OPTIONS,
+                    index=0,
+                    help="Select an essential civic amenity or transport hub to verify in vicinity.",
+                )
+
+            with loc_col3:
+                distance_pref = st.selectbox(
+                    "Distance Preference",
+                    list(DISTANCE_PREFERENCES.keys()),
+                    index=1,
+                    help="Preferred proximity radius from central area.",
+                )
+
+            col1, col2 = st.columns(2, gap="large")
+
+            with col1:
                 bhk = st.selectbox(
                     "Bedrooms Configuration (BHK)",
                     [1, 2, 3, 4, 5, 6, 7, 8],
@@ -1258,6 +1359,72 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                         """,
                         unsafe_allow_html=True,
                     )
+
+                    # Nearby Essentials Proximity Results
+                    if nearby_essential != "No preference":
+                        max_km = DISTANCE_PREFERENCES.get(distance_pref, 3.0)
+                        with st.spinner(f"Searching verified nearby {nearby_essential.lower()} places in {location}..."):
+                            places_result = fetch_nearby_essentials(
+                                city_name=location,
+                                essential_type=nearby_essential,
+                                max_distance_km=max_km,
+                                max_results=6,
+                            )
+
+                        res_status = places_result.get("status")
+                        places_list = places_result.get("places", [])
+
+                        if res_status == "success" and places_list:
+                            items_html = ""
+                            for pl in places_list:
+                                p_name = pl.get("name", "Unknown Place")
+                                p_dist = pl.get("distance_km", 0.0)
+                                p_addr = pl.get("address", location)
+                                items_html += f"""
+                                <div class="nearby-item">
+                                    <div>
+                                        <div class="nearby-name">📍 {p_name}</div>
+                                        <div class="nearby-addr">{p_addr}</div>
+                                    </div>
+                                    <div class="nearby-dist-tag">~{p_dist:.1f} km</div>
+                                </div>
+                                """
+
+                            st.markdown(
+                                f"""
+                                <div class="nearby-card">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                        <div>
+                                            <div style="font-weight: 800; font-size: 1.05rem; color: #18261E; margin-bottom: 2px;">
+                                                📍 Verified Nearby {nearby_essential}
+                                            </div>
+                                            <div style="font-size: 0.84rem; color: #6B7C72;">
+                                                Found within {int(max_km)} km of {location} central zone via OpenStreetMap live records
+                                            </div>
+                                        </div>
+                                        <div class="nearby-badge">
+                                            ✓ {len(places_list)} Verified Places
+                                        </div>
+                                    </div>
+                                    <div class="nearby-grid">
+                                        {items_html}
+                                    </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True,
+                            )
+                        elif res_status == "no_results":
+                            st.info(
+                                f"ℹ️ {places_result.get('message', 'No verified places found within the selected distance.')}"
+                            )
+                        elif res_status == "unknown_city":
+                            st.info(
+                                f"ℹ️ Reliable geographic coordinates for '{location}' are currently unavailable. No dummy places were generated."
+                            )
+                        else:
+                            st.warning(
+                                f"⚠️ {places_result.get('message', 'Nearby place data could not be retrieved at this time.')}"
+                            )
 
             except Exception as error:
                 st.error("Prediction failed. Please verify the input values.")
