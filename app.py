@@ -447,19 +447,44 @@ st.markdown(
         font-weight: 800;
     }}
 
-    /* Inputs Styling */
-    div[data-baseweb="input"] input,
-    div[data-baseweb="select"] > div {{
-        background: #F8FAF7 !important;
-        border-radius: 12px !important;
-        border-color: var(--border-color) !important;
-        color: var(--ink) !important;
-        font-weight: 500 !important;
+    /* Form Labels & Field Descriptions - Crisp, bold & high-contrast */
+    label[data-testid="stWidgetLabel"],
+    label[data-testid="stWidgetLabel"] p,
+    div[data-testid="stMarkdownContainer"] p,
+    .stSelectbox label,
+    .stNumberInput label,
+    .stTextInput label {{
+        color: #18261E !important;
+        font-weight: 700 !important;
+        font-size: 0.94rem !important;
+        letter-spacing: -0.2px !important;
+        margin-bottom: 6px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }}
 
-    div[data-baseweb="input"] input:focus {{
+    /* Inputs Styling */
+    div[data-baseweb="input"],
+    div[data-baseweb="input"] input,
+    div[data-baseweb="select"],
+    div[data-baseweb="select"] > div {{
+        background: #FFFFFF !important;
+        border-radius: 12px !important;
+        border: 1.5px solid #D8E2D7 !important;
+        color: #18261E !important;
+        font-weight: 600 !important;
+        font-size: 0.96rem !important;
+    }}
+
+    div[data-baseweb="select"] span {{
+        color: #18261E !important;
+        font-weight: 600 !important;
+    }}
+
+    div[data-baseweb="input"] input:focus,
+    div[data-baseweb="select"] > div:focus-within {{
         border-color: var(--emerald) !important;
-        box-shadow: 0 0 0 2px rgba(59, 122, 92, 0.15) !important;
+        box-shadow: 0 0 0 3px rgba(59, 122, 92, 0.18) !important;
     }}
 
     /* Buttons */
@@ -1010,6 +1035,7 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                     "Bedrooms Configuration (BHK)",
                     [1, 2, 3, 4, 5, 6, 7, 8],
                     index=1,
+                    format_func=lambda x: f"{x} BHK",
                     help="Number of bedrooms (hall & kitchen).",
                 )
 
@@ -1027,12 +1053,14 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                     "Number of Bathrooms",
                     [1, 2, 3, 4, 5, 6, 7, 8],
                     index=1,
+                    format_func=lambda x: f"{x} Bathrooms" if x > 1 else f"{x} Bathroom",
                 )
 
                 balconies = st.selectbox(
                     "Number of Balconies",
                     [0, 1, 2, 3, 4, 5],
                     index=1,
+                    format_func=lambda x: f"{x} Balconies" if x != 1 else "1 Balcony",
                 )
 
                 floor = st.selectbox(
@@ -1044,6 +1072,7 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                         "Upper Basement", "Lower Basement", "Other",
                     ],
                     index=4,
+                    format_func=lambda x: f"Floor {x}" if str(x).isdigit() else f"{x} Floor",
                 )
 
             # Section 2
@@ -1087,6 +1116,7 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                         "South-West", "Unknown",
                     ],
                     index=0,
+                    format_func=lambda x: f"{x} Facing" if x != "Unknown" else "Unknown Facing",
                 )
 
                 ownership = st.selectbox(
@@ -1102,6 +1132,7 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                     "Car Parking Provision",
                     ["0", "1", "2", "3", "4", "Covered", "Open", "None"],
                     index=1,
+                    format_func=lambda x: f"{x} Car Spaces" if str(x).isdigit() and int(x) > 1 else (f"{x} Car Space" if str(x) == "1" else f"{x} Parking"),
                 )
 
             st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
