@@ -6,6 +6,14 @@ import joblib
 import pandas as pd
 import streamlit as st
 
+from src.auth import (
+    register_user,
+    authenticate_user,
+    save_user_estimation,
+    get_user_estimations,
+    init_auth_db,
+)
+
 
 # --------------------------------------------------
 # 1. PROJECT SETTINGS & CONSTANTS
@@ -15,6 +23,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 MODEL_PATH = PROJECT_ROOT / "models" / "best_model.joblib"
 REPORT_PATH = PROJECT_ROOT / "reports" / "model_comparison.csv"
 HERO_IMG_PATH = PROJECT_ROOT / "assets" / "luxury_home.jpg"
+FIG_FEAT_PATH = PROJECT_ROOT / "reports" / "figures" / "feature_importance.png"
+FIG_COMP_PATH = PROJECT_ROOT / "reports" / "figures" / "model_comparison_mae.png"
 
 st.set_page_config(
     page_title="DwellIQ | Smart Property Estimates",
@@ -22,6 +32,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+# Initialize secure SQLite authentication database
+init_auth_db()
 
 # Pre-known top locations from the 187k+ records dataset
 DATASET_LOCATIONS = [
@@ -158,6 +171,20 @@ st.markdown(
         font-size: 0.78rem;
         font-weight: 500;
         letter-spacing: 0.3px;
+    }}
+
+    /* Auth status chip */
+    .user-chip {{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--sage-light);
+        border: 1px solid var(--sage-border);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.83rem;
+        font-weight: 700;
+        color: var(--green);
     }}
 
     /* Hero Banner with Modern Indian Luxury Villa */
@@ -482,7 +509,7 @@ st.markdown(
         background: transparent !important;
         border: none !important;
         border-radius: 12px !important;
-        padding: 9px 20px !important;
+        padding: 9px 18px !important;
         font-weight: 600 !important;
         color: var(--ink-light) !important;
         transition: all 0.2s ease !important;
@@ -680,36 +707,51 @@ except Exception as error:
 
 
 # --------------------------------------------------
-# 5. HEADER AND NAVIGATION
+# 5. USER SESSION & AUTHENTICATION STATE
 # --------------------------------------------------
 
-nav_options = ["Overview", "Estimate a Property", "About the Project"]
+if "logged_in_user" not in st.session_state:
+    st.session_state["logged_in_user"] = None
 
 if "page_nav" not in st.session_state:
     st.session_state["page_nav"] = "Overview"
 
-# Ensure requested navigation is valid
+# Dynamic navigation tabs based on login status
+if st.session_state["logged_in_user"]:
+    nav_options = ["Overview", "Estimate a Property", "My Saved Estimates", "About the Project", "Account"]
+else:
+    nav_options = ["Overview", "Estimate a Property", "About the Project", "Login / Register"]
+
 if st.session_state["page_nav"] not in nav_options:
     st.session_state["page_nav"] = "Overview"
+
+# --------------------------------------------------
+# 6. HEADER AND NAVIGATION
+# --------------------------------------------------
 
 nav_left, nav_right = st.columns([1.1, 1.9], gap="medium")
 
 with nav_left:
+    user_badge = ""
+    if st.session_state["logged_in_user"]:
+        uname = st.session_state["logged_in_user"]["full_name"]
+        user_badge = f'<div class="user-chip">👤 {uname}</div>'
+
     st.markdown(
-        """
+        f"""
         <div class="brand-container">
             <div class="brand-logo-badge">🏡</div>
             <div>
                 <div class="brand-title">Dwell<span>IQ</span></div>
                 <div class="brand-tag">Smart Property Estimates · Real Estate AI</div>
             </div>
+            {user_badge}
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 with nav_right:
-    # Radio navigation connected directly to session_state
     selected_page = st.radio(
         "Navigation",
         nav_options,
@@ -724,7 +766,7 @@ with nav_right:
 
 
 # --------------------------------------------------
-# 6. OVERVIEW / HOMEPAGE
+# 7. OVERVIEW / HOMEPAGE
 # --------------------------------------------------
 
 if st.session_state["page_nav"] == "Overview":
@@ -847,7 +889,7 @@ if st.session_state["page_nav"] == "Overview":
                 <div class="premium-card-title">Dual-Unit Formatting</div>
                 <div class="premium-card-desc">
                     Outputs estimations clearly in Indian denominations (Lakhs and Crores)
-                    along with realistic estimation bounds.
+                    along with empirical variance ranges.
                 </div>
             </div>
             """,
@@ -938,7 +980,7 @@ if st.session_state["page_nav"] == "Overview":
 
 
 # --------------------------------------------------
-# 7. ESTIMATE A PROPERTY PAGE
+# 8. ESTIMATE A PROPERTY PAGE
 # --------------------------------------------------
 
 elif st.session_state["page_nav"] == "Estimate a Property":
@@ -981,7 +1023,6 @@ elif st.session_state["page_nav"] == "Estimate a Property":
             col1, col2 = st.columns(2, gap="large")
 
             with col1:
-                # Pre-populated location selectbox with Mumbai as default
                 default_loc_index = (
                     DATASET_LOCATIONS.index("Mumbai")
                     if "Mumbai" in DATASET_LOCATIONS else 0
@@ -1099,7 +1140,6 @@ elif st.session_state["page_nav"] == "Estimate a Property":
             )
 
         if submitted:
-            # Prepare input data matching model features
             input_values = {
                 "BHK": bhk,
                 "carpet_area_sqft": carpet_area,
@@ -1150,12 +1190,23 @@ elif st.session_state["page_nav"] == "Estimate a Property":
                                 Exact computation: ₹{prediction:,.0f}
                             </div>
                             <div class="pred-range-pill">
-                                📊 Typical Variance Range: {format_rupees(lower_bound)} — {format_rupees(upper_bound)}
+                                📊 Empirical Variance Range (±MAE): {format_rupees(lower_bound)} — {format_rupees(upper_bound)}
                             </div>
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
+
+                    # Auto-save estimation for logged-in user
+                    if st.session_state["logged_in_user"]:
+                        save_user_estimation(
+                            st.session_state["logged_in_user"]["id"],
+                            location,
+                            bhk,
+                            carpet_area,
+                            prediction,
+                        )
+                        st.success("✅ This estimate has been saved to your personal history in 'My Saved Estimates'.")
 
                     # Neat Property Specification Matrix
                     st.markdown(
@@ -1221,7 +1272,144 @@ elif st.session_state["page_nav"] == "Estimate a Property":
 
 
 # --------------------------------------------------
-# 8. ABOUT THE PROJECT PAGE
+# 9. PROTECTED USER ESTIMATIONS HISTORY PAGE
+# --------------------------------------------------
+
+elif st.session_state["page_nav"] == "My Saved Estimates":
+
+    if not st.session_state["logged_in_user"]:
+        st.warning("🔒 You must be logged in to view your saved estimates.")
+        if st.button("Go to Login / Register"):
+            st.session_state["page_nav"] = "Login / Register"
+            st.rerun()
+    else:
+        u = st.session_state["logged_in_user"]
+        st.markdown(
+            f"""
+            <div class="section-title-wrap" style="margin-top: 10px;">
+                <div class="section-eyebrow">User Vault</div>
+                <div class="section-title">Saved Valuation History</div>
+                <div class="section-sub">
+                    Welcome back, <b>{u['full_name']}</b> ({u['email']}). Here are your recent property calculations.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        history = get_user_estimations(u["id"])
+        if not history:
+            st.info("You haven't saved any property valuations yet. Go to 'Estimate a Property' to generate your first estimate!")
+        else:
+            hist_df = pd.DataFrame(history)
+            hist_df["Formatted Price"] = hist_df["estimated_price"].apply(format_rupees)
+            hist_df["Exact Rupee Value"] = hist_df["estimated_price"].apply(lambda p: f"₹{p:,.0f}")
+            hist_df["Carpet Area (sq.ft)"] = hist_df["carpet_area"].astype(int)
+            hist_df["Config"] = hist_df["bhk"].astype(str) + " BHK"
+
+            display_table = hist_df[[
+                "created_at", "location", "Config", "Carpet Area (sq.ft)", "Formatted Price", "Exact Rupee Value"
+            ]].rename(columns={"created_at": "Timestamp", "location": "City"})
+
+            st.dataframe(display_table, use_container_width=True, hide_index=True)
+
+
+# --------------------------------------------------
+# 10. AUTHENTICATION (LOGIN / REGISTER / ACCOUNT)
+# --------------------------------------------------
+
+elif st.session_state["page_nav"] in ["Login / Register", "Account"]:
+
+    if st.session_state["logged_in_user"]:
+        # Account Page for Logged-In User
+        u = st.session_state["logged_in_user"]
+        st.markdown(
+            f"""
+            <div class="section-title-wrap" style="margin-top: 10px;">
+                <div class="section-eyebrow">Account Overview</div>
+                <div class="section-title">User Profile & Session</div>
+                <div class="section-sub">Manage your active student session securely.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            f"""
+            <div class="summary-card">
+                <div style="font-size:1.1rem; font-weight:800; color:#18261E; margin-bottom:10px;">Active Session Profile</div>
+                <p><b>Name:</b> {u['full_name']}</p>
+                <p><b>Email:</b> {u['email']}</p>
+                <p><b>Password Security:</b> PBKDF2-HMAC-SHA256 (200,000 salt iterations)</p>
+                <p><b>Storage:</b> Parameterized SQLite Engine (Encrypted session hash)</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button("🚪 Logout of Account", key="btn_logout"):
+            st.session_state["logged_in_user"] = None
+            st.session_state["page_nav"] = "Overview"
+            st.success("You have been securely logged out.")
+            st.rerun()
+
+    else:
+        # Login and Register Form Tabs
+        st.markdown(
+            """
+            <div class="section-title-wrap" style="margin-top: 10px;">
+                <div class="section-eyebrow">Student Project Security</div>
+                <div class="section-title">Access DwellIQ Workspace</div>
+                <div class="section-sub">
+                    Sign in to track personal valuation history and access authenticated analytical features.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        auth_tab_login, auth_tab_register = st.tabs(["🔑 Sign In", "📝 Create Account"])
+
+        with auth_tab_login:
+            with st.form("form_user_login"):
+                st.markdown("#### Enter Your Credentials")
+                login_email = st.text_input("Email Address", placeholder="e.g. student@college.edu")
+                login_password = st.text_input("Password", type="password", placeholder="Enter your password")
+                btn_login = st.form_submit_button("Sign In to DwellIQ", use_container_width=True)
+
+            if btn_login:
+                ok, msg, udata = authenticate_user(login_email, login_password)
+                if ok:
+                    st.session_state["logged_in_user"] = udata
+                    st.session_state["page_nav"] = "Overview"
+                    st.success(f"Welcome back, {udata['full_name']}!")
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        with auth_tab_register:
+            with st.form("form_user_register"):
+                st.markdown("#### Register a New Account")
+                reg_name = st.text_input("Full Name", placeholder="e.g. Vaishnavi Naik")
+                reg_email = st.text_input("Email Address", placeholder="e.g. user@example.com")
+                reg_pass1 = st.text_input("Create Password", type="password", help="Minimum 8 characters with at least one number or special character.")
+                reg_pass2 = st.text_input("Confirm Password", type="password")
+                btn_reg = st.form_submit_button("Register Account", use_container_width=True)
+
+            if btn_reg:
+                if reg_pass1 != reg_pass2:
+                    st.error("Passwords do not match. Please re-enter identical passwords.")
+                else:
+                    ok, msg = register_user(reg_name, reg_email, reg_pass1)
+                    if ok:
+                        st.success(msg)
+                        st.info("You can now switch to the 'Sign In' tab above to log into your new account.")
+                    else:
+                        st.error(msg)
+
+
+# --------------------------------------------------
+# 11. ABOUT THE PROJECT PAGE
 # --------------------------------------------------
 
 elif st.session_state["page_nav"] == "About the Project":
@@ -1246,7 +1434,7 @@ elif st.session_state["page_nav"] == "About the Project":
                 College Mini-Project
             </div>
             <div style="font-size:1.35rem; font-weight:800; color:#18261E; margin: 10px 0 8px 0;">
-                Comparative Regression Analysis for Real Estate Valuations
+                House Price Prediction Using Linear Regression and Random Forest
             </div>
             <p style="color:#4A5B51; line-height:1.75; font-size:0.95rem; margin:0;">
                 DwellIQ leverages high-dimensional listing features (geography, floor space, architectural layout,
@@ -1374,8 +1562,8 @@ elif st.session_state["page_nav"] == "About the Project":
             unsafe_allow_html=True,
         )
 
-    # Model Evaluation Metrics
-    st.markdown("#### 📊 Model Performance & Metrics")
+    # Model Evaluation Metrics & Visual Explainability
+    st.markdown("#### 📊 Model Performance & Explainability")
 
     if model is not None:
         mae_value = model_metrics.get("MAE_Rupees")
@@ -1405,8 +1593,29 @@ elif st.session_state["page_nav"] == "About the Project":
                 help="Proportion of variance explained by model features.",
             )
 
+        # Charts Section
+        st.markdown("##### 📈 Empirical Visual Insights")
+        chart_col1, chart_col2 = st.columns(2, gap="medium")
+
+        with chart_col1:
+            if FIG_FEAT_PATH.exists():
+                st.image(str(FIG_FEAT_PATH), caption="Top Feature Importances (Tree Impurity Reduction)", use_container_width=True)
+            else:
+                st.info("Feature importance visual will generate upon running 'python src/evaluate_model.py'.")
+
+        with chart_col2:
+            if FIG_COMP_PATH.exists():
+                st.image(str(FIG_COMP_PATH), caption="Comparative Model Error (MAE in ₹ Lakhs)", use_container_width=True)
+            else:
+                st.info("Comparative evaluation visual will generate upon running 'python src/evaluate_model.py'.")
+
+        st.caption(
+            "📌 **Explainability Note:** Feature importance indicates statistical association within the tabular listing sample, "
+            "not direct causality. Factors such as local infrastructure and builder pedigree remain unobserved tabular variables."
+        )
+
         if REPORT_PATH.exists():
-            st.markdown("##### Comparative Model Evaluation")
+            st.markdown("##### Comparative Model Evaluation Table")
             try:
                 comparison = pd.read_csv(REPORT_PATH)
                 st.dataframe(comparison, use_container_width=True, hide_index=True)
@@ -1423,7 +1632,7 @@ elif st.session_state["page_nav"] == "About the Project":
 
 
 # --------------------------------------------------
-# 9. FOOTER
+# 12. FOOTER
 # --------------------------------------------------
 
 st.markdown(
