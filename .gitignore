@@ -56,4 +56,4 @@ htmlcov/
 # Large binaries & datasets (>100MB exceeds GitHub push limit)
 data/raw/
 data/processed/
-models/*.joblib
+models/*_backup.joblib
