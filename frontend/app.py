@@ -15,12 +15,9 @@ def setup_page():
         pass
 
     # Load CSS Stylesheet
-    theme_css = Path(__file__).resolve().parent / "styles" / "theme.css"
-    if not theme_css.exists():
-        theme_css = Path(__file__).resolve().parent / "styles" / "main.css"
-
-    if theme_css.exists():
-        with open(theme_css, "r", encoding="utf-8") as f:
+    css_path = Path(__file__).resolve().parent / "styles" / "main.css"
+    if css_path.exists():
+        with open(css_path, "r", encoding="utf-8") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 

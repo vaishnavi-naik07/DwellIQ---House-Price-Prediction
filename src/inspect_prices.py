@@ -3,7 +3,8 @@ import pandas as pd
 import re
 from pathlib import Path
 
-DATA_PATH = Path("data/raw/house_prices.csv")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_PATH = PROJECT_ROOT / "data" / "raw" / "house_prices.csv"
 df = pd.read_csv(DATA_PATH)
 
 def convert_price(value):
@@ -12,7 +13,7 @@ def convert_price(value):
         return None
 
     text = str(value).strip().lower()
-    text = text.replace(",", "").replace("₹", "").replace("inr", "").strip()
+    text = text.replace(",", "").replace("\u20b9", "").replace("inr", "").strip()
 
     match = re.search(r"(\d+(?:\.\d+)?)\s*(crore|crores|cr|lakh|lakhs|lac|lacs)", text)
 

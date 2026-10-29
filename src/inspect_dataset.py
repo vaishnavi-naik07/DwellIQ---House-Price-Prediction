@@ -3,7 +3,8 @@ import pandas as pd
 from pathlib import Path
 
 # Dataset location
-file_path = Path("data/raw/house_prices.csv")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+file_path = PROJECT_ROOT / "data" / "raw" / "house_prices.csv"
 
 if not file_path.exists():
     raise FileNotFoundError(

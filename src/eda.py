@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "house_prices.csv"
 FIGURES_DIR = PROJECT_ROOT / "reports" / "figures"
 REPORT_MD_PATH = PROJECT_ROOT / "reports" / "EDA_REPORT.md"

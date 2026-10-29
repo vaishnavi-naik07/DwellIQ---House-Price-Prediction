@@ -16,8 +16,8 @@
 ```mermaid
 graph TD
     subgraph Data & Pipeline Layer
-        A["Raw Data<br>(house_prices.csv - 187K rows)"] -->|scripts/data_preprocessing.py| B["Cleaned Dataset<br>(177K records)"]
-        B -->|scripts/train_model.py| C["Scikit-Learn Pipeline<br>(Imputer + OneHot + RF)"]
+        A["Raw Data<br>(house_prices.csv - 187K rows)"] -->|src/data_preprocessing.py| B["Cleaned Dataset<br>(177K records)"]
+        B -->|src/train_model.py| C["Scikit-Learn Pipeline<br>(Imputer + OneHot + RF)"]
         C -->|Serialize| D["models/best_model.joblib"]
     end
 
@@ -33,7 +33,7 @@ graph TD
         N["Root Entrypoint: app.py"] --> O["frontend/app.py"]
         O --> P["frontend/components/<br>(navbar, sidebar, cards, chat, charts)"]
         O --> Q["frontend/pages/<br>(7 Dedicated Screens)"]
-        P & Q -->|Modern Editorial Styling| R["frontend/styles/theme.css"]
+        P & Q -->|Modern Editorial Styling| R["frontend/styles/main.css"]
     end
 ```
 
@@ -43,30 +43,32 @@ graph TD
 
 ```text
 DwellIQ/
-├── frontend/
-│   ├── app.py                      # Main frontend Streamlit application
+├── app.py                          # Root Streamlit Cloud entrypoint
+│
+├── frontend/                       # Streamlit UI layer
+│   ├── app.py                      # Main frontend app with page routing
 │   ├── pages/
-│   │   ├── dashboard.py            # Overview hero, quick actions, genuine market stats
-│   │   ├── estimate_property.py    # 3-section estimation form & valuation hero card
+│   │   ├── dashboard.py            # Overview hero, quick actions, market stats
+│   │   ├── estimate_property.py    # 3-section estimation form & valuation card
 │   │   ├── ai_assistant.py         # DwellIQ AI — Your Personal Property Advisor
 │   │   ├── nearby_essentials.py    # Live OpenStreetMap POI infrastructure search
-│   │   ├── compare_properties.py   # Multi-property comparison matrix & value badges
-│   │   ├── emi_calculator.py       # Mortgage EMI breakdown & FOIR affordability check
-│   │   └── model_insights.py       # Leaderboard table, training charts & limitations
+│   │   ├── compare_properties.py   # Multi-property comparison matrix & badges
+│   │   ├── emi_calculator.py       # Mortgage EMI breakdown & FOIR affordability
+│   │   └── model_insights.py       # Leaderboard table, training charts & notes
 │   ├── components/
 │   │   ├── navbar.py               # Top brand bar, header chips & footer
 │   │   ├── sidebar.py              # Navigation menu & user auth widget
 │   │   ├── property_card.py        # Valuation cards, property cards & spec pills
 │   │   ├── chat_interface.py       # Chat bubbles, prompt cards & input controls
-│   │   └── charts.py               # EMI breakdown donut chart & evaluation figures
+│   │   ├── auth_modal.py           # Login / register authentication modal
+│   │   └── charts.py               # EMI donut chart & evaluation figures
 │   ├── styles/
-│   │   ├── theme.css               # Warm cream, forest green & sage design system
-│   │   └── main.css                # Backward-compatible styling shim
+│   │   └── main.css                # Warm cream, forest green & sage design system
 │   └── assets/
 │       └── images/
-│           └── luxury_home.jpg     # High-resolution architectural villa hero visual
+│           └── luxury_home.jpg     # High-res hero visual
 │
-├── backend/
+├── backend/                        # Reusable application logic & services
 │   ├── __init__.py
 │   ├── core/
 │   │   ├── __init__.py
@@ -84,39 +86,52 @@ DwellIQ/
 │       ├── validators.py           # Email, password, property & EMI validators
 │       └── formatters.py           # Currency & number notation formatters
 │
-├── models/
-│   └── best_model.joblib           # Trained Random Forest Scikit-learn pipeline bundle
+├── src/                            # ML and data-processing source code
+│   ├── __init__.py
+│   ├── data_preprocessing.py       # Data cleaning & unit normalization
+│   ├── train_model.py              # Model training & serialization
+│   ├── evaluate_model.py           # Model evaluation & figure generation
+│   ├── eda.py                      # Exploratory data analysis
+│   ├── inspect_dataset.py          # Dataset structure inspection utility
+│   ├── inspect_prices.py           # Price conversion validation utility
+│   ├── auth.py                     # PBKDF2 authentication & user management
+│   └── nearby_places.py            # City coordinates & Nominatim POI queries
 │
 ├── data/
-│   ├── raw/                        # Original scraped listings
+│   ├── raw/                        # Original scraped listings (house_prices.csv)
 │   ├── processed/                  # Cleaned 177K+ dataset
-│   └── secure/                     # Parameterized SQLite user & valuation database
+│   └── secure/                     # SQLite user & valuation database
+│
+├── models/
+│   └── best_model.joblib           # Trained Random Forest Scikit-learn pipeline
+│
+├── notebooks/
+│   └── 01_exploratory_data_analysis.ipynb
 │
 ├── reports/
 │   ├── DATA_DICTIONARY.md          # Feature definitions & data provenance
 │   ├── EDA_REPORT.md               # Exploratory data analysis insights
 │   ├── MODEL_EVALUATION.md         # MAE, RMSE, R² & explainability breakdown
-│   ├── VIVA_QUESTIONS.md           # Examiner questions, answers & presentation guide
+│   ├── VIVA_QUESTIONS.md           # Examiner Q&A & presentation guide
 │   ├── model_comparison.csv        # Benchmarked model metrics
-│   └── figures/                    # Saved figures (feature importance, MAE comparison)
+│   └── figures/                    # Saved figures (feature importance, etc.)
 │
 ├── tests/
 │   ├── test_chatbot.py             # DwellIQ AI advisor & financial intent tests
 │   ├── test_dwelliq.py             # Security, model inference & nearby places tests
-│   └── test_preprocessing.py       # Preprocessing regex, validators & financial tests
+│   └── test_preprocessing.py       # Preprocessing, validators & financial tests
 │
-├── scripts/
-│   ├── data_preprocessing.py       # Data cleaning & unit normalization script
-│   ├── train_model.py              # Machine learning training & serialization script
-│   └── eda.py                      # Exploratory data analysis generation script
+├── scripts/                        # Thin runner scripts that invoke src/
+│   ├── run_preprocessing.py        # → src.data_preprocessing.preprocess_data()
+│   ├── run_training.py             # → src.train_model.train_and_save_model()
+│   └── run_eda.py                  # → src.eda.run_comprehensive_eda()
 │
 ├── .streamlit/
-│   └── config.toml                 # Streamlit theme configuration (cream, forest green)
-├── app.py                          # Root Streamlit Cloud entrypoint
+│   └── config.toml                 # Streamlit theme configuration
 ├── requirements.txt                # Production Python dependencies
-├── .gitignore                      # Security rules: databases, secrets, virtualenvs
+├── .gitignore                      # Security rules: databases, secrets, venvs
 ├── .env.example                    # Environment variable template
-└── README.md                       # Comprehensive project documentation
+└── README.md                       # This file
 ```
 
 ---
@@ -237,7 +252,7 @@ git status
 git add .
 
 # 3. Commit with descriptive summary
-git commit -m "feat: remove about section and upgrade to advanced DwellIQ AI Property Advisor"
+git commit -m "refactor: clean separation into frontend, backend, and src layers"
 
 # 4. Push to remote main branch
 git push origin main
