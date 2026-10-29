@@ -50,8 +50,8 @@ data/secure/
 .coverage
 htmlcov/
 
-# Streamlit runtime state
-.streamlit/
+# Streamlit secrets (keep config.toml tracked)
+.streamlit/secrets.toml
 
 # Large binaries & datasets (>100MB exceeds GitHub push limit)
 data/raw/

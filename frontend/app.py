@@ -1,0 +1,68 @@
+from pathlib import Path
+import streamlit as st
+
+# Configure page early
+def setup_page():
+    try:
+        st.set_page_config(
+            page_title="DwellIQ | AI Real Estate Decision Platform",
+            page_icon="🏡",
+            layout="wide",
+            initial_sidebar_state="expanded",
+        )
+    except Exception:
+        # Ignore if set_page_config was already invoked by entrypoint
+        pass
+
+    # Load CSS Stylesheet
+    theme_css = Path(__file__).resolve().parent / "styles" / "theme.css"
+    if not theme_css.exists():
+        theme_css = Path(__file__).resolve().parent / "styles" / "main.css"
+
+    if theme_css.exists():
+        with open(theme_css, "r", encoding="utf-8") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+from frontend.components.navbar import render_brand_header, render_footer
+from frontend.components.sidebar import render_sidebar
+from frontend.pages.dashboard import render_dashboard_page
+from frontend.pages.estimate_property import render_estimate_property_page
+from frontend.pages.ai_assistant import render_ai_assistant_page
+from frontend.pages.nearby_essentials import render_nearby_essentials_page
+from frontend.pages.compare_properties import render_compare_properties_page
+from frontend.pages.emi_calculator import render_emi_calculator_page
+from frontend.pages.model_insights import render_model_insights_page
+
+
+def main():
+    setup_page()
+
+    # 1. Sidebar Navigation & Account Widget
+    active_page, current_user = render_sidebar()
+
+    # 2. Top Brand Header / Navbar
+    render_brand_header(current_user=current_user)
+
+    # 3. Route to active page
+    if active_page == "Overview Dashboard":
+        render_dashboard_page()
+    elif active_page == "Estimate a Property":
+        render_estimate_property_page(current_user=current_user)
+    elif active_page in ["DwellIQ AI Advisor", "AI Property Assistant"]:
+        render_ai_assistant_page()
+    elif active_page == "Nearby Essentials":
+        render_nearby_essentials_page()
+    elif active_page == "Compare Properties":
+        render_compare_properties_page()
+    elif active_page == "EMI Calculator":
+        render_emi_calculator_page()
+    elif active_page == "Model Insights":
+        render_model_insights_page()
+
+    # 4. Global Footer
+    render_footer()
+
+
+if __name__ == "__main__":
+    main()
