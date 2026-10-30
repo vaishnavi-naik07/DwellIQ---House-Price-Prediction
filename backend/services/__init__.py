@@ -7,6 +7,14 @@ from backend.services.chatbot_service import (
 from backend.services.nearby_service import get_nearby_amenities
 from backend.services.finance_service import calculate_home_loan_emi, calculate_affordability
 from backend.services.comparison_service import compare_properties
+from backend.services.investment_service import (
+    calculate_rental_yield,
+    simulate_property_appreciation,
+    analyze_rental_cash_flow,
+    calculate_overall_roi,
+    calculate_break_even_period,
+    compare_investment_properties,
+)
 
 __all__ = [
     "predict_price",
@@ -18,4 +26,10 @@ __all__ = [
     "calculate_home_loan_emi",
     "calculate_affordability",
     "compare_properties",
+    "calculate_rental_yield",
+    "simulate_property_appreciation",
+    "analyze_rental_cash_flow",
+    "calculate_overall_roi",
+    "calculate_break_even_period",
+    "compare_investment_properties",
 ]

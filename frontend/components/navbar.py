@@ -19,20 +19,7 @@ def render_brand_header(current_user=None):
         """
 
     st.markdown(
-        f"""
-        <div class="dwell-brand-bar">
-            <div class="dwell-brand-left">
-                <div class="dwell-logo-box">🏡</div>
-                <div>
-                    <div class="dwell-brand-title">Dwell<span>IQ</span></div>
-                    <div class="dwell-brand-tagline">Smart Property Estimates · Real Estate AI Platform</div>
-                </div>
-            </div>
-            <div>
-                {user_html}
-            </div>
-        </div>
-        """,
+        f"""<div class="dwell-brand-bar"><div class="dwell-brand-left"><div class="dwell-logo-box">🏡</div><div><div class="dwell-brand-title">Dwell<span>IQ</span></div><div class="dwell-brand-tagline">Smart Property Estimates · Real Estate AI Platform</div></div></div><div>{user_html}</div></div>""",
         unsafe_allow_html=True,
     )
 

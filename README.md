@@ -54,6 +54,7 @@ DwellIQ/
 │   │   ├── nearby_essentials.py    # Live OpenStreetMap POI infrastructure search
 │   │   ├── compare_properties.py   # Multi-property comparison matrix & badges
 │   │   ├── emi_calculator.py       # Mortgage EMI breakdown & FOIR affordability
+│   │   ├── investment_analysis.py  # Rental yield, appreciation, cash flow & ROI
 │   │   └── model_insights.py       # Leaderboard table, training charts & notes
 │   ├── components/
 │   │   ├── navbar.py               # Top brand bar, header chips & footer
@@ -80,6 +81,7 @@ DwellIQ/
 │   │   ├── chatbot_service.py      # LLM handler & domain fallback engine
 │   │   ├── nearby_service.py       # OpenStreetMap Nominatim geospatial queries
 │   │   ├── finance_service.py      # Exact EMI & affordability calculations
+│   │   ├── investment_service.py   # Rental yield, cash flow, ROI & break-even math
 │   │   └── comparison_service.py   # Property comparison & highlight analytics
 │   └── utils/
 │       ├── __init__.py
@@ -119,6 +121,7 @@ DwellIQ/
 ├── tests/
 │   ├── test_chatbot.py             # DwellIQ AI advisor & financial intent tests
 │   ├── test_dwelliq.py             # Security, model inference & nearby places tests
+│   ├── test_investment.py          # Yield, cash flow, ROI & break-even tests
 │   └── test_preprocessing.py       # Preprocessing, validators & financial tests
 │
 ├── scripts/                        # Thin runner scripts that invoke src/
@@ -182,7 +185,15 @@ DwellIQ/
    - Matplotlib payment breakdown donut chart (Principal vs Interest).
    - Tab 2: Affordability assessment based on standard 40–50% FOIR (Fixed Obligation to Income Ratio).
 
-7. **Model Insights (`frontend/pages/model_insights.py`):**
+7. **Investment Analysis (`frontend/pages/investment_analysis.py`):**
+   - **Rental Yield Calculator:** Computes Gross Rental Yield (%) and Net Rental Yield (%) accounting for maintenance, property taxes, and operating expenses.
+   - **Capital Appreciation Simulator:** Projects compound future value over 1, 3, 5, 10, or 15-year horizons with Matplotlib trajectory curves and capital gain shading.
+   - **Rental Cash Flow Analysis:** Evaluates monthly net cash flow (Rent minus EMI, society dues, property management, and reserves) with positive/negative surplus indicators.
+   - **Holding Period ROI:** Comprehensive total and annualized ROI based on total initial outlay, cumulative net rent, and estimated future resale value.
+   - **Equity Break-Even Period:** Calculates years and months required to recover capital via net rental yields.
+   - **Multi-Property Comparison Matrix:** Benchmarks up to 3 investment options side-by-side with metric highlights.
+
+8. **Model Insights (`frontend/pages/model_insights.py`):**
    - Official model benchmark leaderboard from `model_comparison.csv`.
    - Empirical visualizations: Random Forest feature importances and MAE comparison.
    - Honest academic discussion of real-estate variance and $R^2$ scores for college review and viva.
@@ -233,7 +244,8 @@ Run the full pytest suite:
 python -m pytest tests/ -v
 ```
 
-**Test Results: 41 Passed, 0 Failed (100% Pass Rate)**
+**Test Results: 48 Passed, 0 Failed (100% Pass Rate)**
+- **Investment Analytics (`test_investment.py`):** Gross/net yields, appreciation compounding, positive/negative cash flows, multi-year ROI balance sheets, and break-even intervals.
 - **Chatbot & Advisory (`test_chatbot.py`):** System prompt constraints, price explainability, active context awareness, EMI calculations, budget affordability, RERA checklists, property terms, nearby queries.
 - **Security & Integrity (`test_dwelliq.py`):** PBKDF2 password hashing, verification, email validation, rate limiting, model bundle loading, standard inference, extreme luxury properties, unseen categories, missing value imputation.
 - **Preprocessing & Finance (`test_preprocessing.py`):** Currency parsing (Lakhs, Crores, ₹), BHK regex extraction, carpet area conversion, EMI formulas, FOIR calculations, property matrix comparison.

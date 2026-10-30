@@ -9,6 +9,7 @@ PAGE_ROUTES = [
     "Nearby Essentials",
     "Compare Properties",
     "EMI Calculator",
+    "Investment Analysis",
     "Model Insights",
 ]
 

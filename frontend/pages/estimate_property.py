@@ -188,19 +188,29 @@ def render_estimate_property_page(current_user=None):
                 f"- This figure should be used as a preliminary statistical benchmark alongside certified surveyor appraisal."
             )
 
-            # Quick Navigation to EMI Calculator, Comparison, or DwellIQ AI Advisor
-            col_act1, col_act2, col_act3 = st.columns(3)
+            # Quick Navigation to EMI Calculator, Investment Analysis, Comparison, or DwellIQ AI Advisor
+            col_act1, col_act2, col_act3, col_act4 = st.columns(4)
             with col_act1:
-                if st.button("📊 Calculate Monthly EMI →", use_container_width=True):
+                if st.button("📊 Calculate EMI →", use_container_width=True):
                     st.session_state["prefill_price"] = predicted_val
                     st.session_state["page_nav"] = "EMI Calculator"
                     st.rerun()
             with col_act2:
+                if st.button("📈 Analyse Investment →", use_container_width=True):
+                    st.session_state["prefill_investment"] = {
+                        "price": predicted_val,
+                        "title": f"{bhk} BHK in {location}",
+                        "location": location,
+                        "area": carpet_area,
+                    }
+                    st.session_state["page_nav"] = "Investment Analysis"
+                    st.rerun()
+            with col_act3:
                 if st.button("⚖️ Compare Listing →", use_container_width=True):
                     st.session_state["page_nav"] = "Compare Properties"
                     st.rerun()
-            with col_act3:
-                if st.button("💬 Discuss with DwellIQ AI →", use_container_width=True, type="primary"):
+            with col_act4:
+                if st.button("💬 Discuss with AI →", use_container_width=True, type="primary"):
                     st.session_state["active_property_context"] = st.session_state["latest_estimate"]
                     st.session_state["page_nav"] = "DwellIQ AI Advisor"
                     st.rerun()

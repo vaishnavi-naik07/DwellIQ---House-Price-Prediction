@@ -56,7 +56,7 @@ def render_dashboard_page(current_user=None):
     )
 
     # Quick Action Buttons
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
         if st.button("✨ Estimate Property", key="dash_btn_est", use_container_width=True):
             st.session_state["page_nav"] = "Estimate a Property"
@@ -72,6 +72,10 @@ def render_dashboard_page(current_user=None):
     with c4:
         if st.button("🏦 EMI Calculator", key="dash_btn_emi", use_container_width=True):
             st.session_state["page_nav"] = "EMI Calculator"
+            st.rerun()
+    with c5:
+        if st.button("📈 Investment Analysis", key="dash_btn_inv", use_container_width=True):
+            st.session_state["page_nav"] = "Investment Analysis"
             st.rerun()
 
     # 2. Genuine Dataset & Market Statistics (From 177k cleaned records)

@@ -30,6 +30,7 @@ from frontend.pages.ai_assistant import render_ai_assistant_page
 from frontend.pages.nearby_essentials import render_nearby_essentials_page
 from frontend.pages.compare_properties import render_compare_properties_page
 from frontend.pages.emi_calculator import render_emi_calculator_page
+from frontend.pages.investment_analysis import render_investment_analysis_page
 from frontend.pages.model_insights import render_model_insights_page
 
 
@@ -64,6 +65,8 @@ def main():
         render_compare_properties_page()
     elif active_page == "EMI Calculator":
         render_emi_calculator_page()
+    elif active_page == "Investment Analysis":
+        render_investment_analysis_page()
     elif active_page == "Model Insights":
         render_model_insights_page()
 
