@@ -149,13 +149,17 @@ def render_estimate_property_page(current_user=None):
 
             # If user is logged in, record in persistence DB
             if current_user and "id" in current_user:
-                save_user_estimation(
-                    user_id=current_user["id"],
-                    location=location,
-                    bhk=bhk,
-                    carpet_area=carpet_area,
-                    estimated_price=predicted_val,
-                )
+                try:
+                    save_user_estimation(
+                        user_id=current_user["id"],
+                        location=location,
+                        bhk=bhk,
+                        carpet_area=carpet_area,
+                        price=predicted_val,
+                        estimated_price=predicted_val,
+                    )
+                except Exception:
+                    pass
 
             # Render Premium Valuation Card
             render_valuation_card(

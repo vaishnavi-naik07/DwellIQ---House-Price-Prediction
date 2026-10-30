@@ -1,4 +1,4 @@
-/* DwellIQ Premium Real-Estate Design System */
+ode a/* DwellIQ Premium Real-Estate Design System */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
 
 :root {
@@ -31,9 +31,37 @@ html, body, [class*="css"] {
     background-color: var(--cream);
 }
 
-/* Hide Streamlit default clutter */
-#MainMenu, footer, header {
+/* Hide Streamlit default clutter but keep sidebar toggle accessible */
+#MainMenu {
     visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+/* Ensure the sidebar toggle button (< / > arrow) is always visible and clickable */
+button[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    z-index: 999999 !important;
+    color: var(--green) !important;
+}
+
+/* Sidebar styling */
+section[data-testid="stSidebar"] {
+    background-color: #FFFFFF !important;
+    border-right: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stSidebarContent"] {
+    padding-top: 2rem !important;
 }
 
 .block-container {

@@ -19,12 +19,20 @@ def get_image_base64(path: Path) -> str:
     return ""
 
 
-def render_dashboard_page():
+def render_dashboard_page(current_user=None):
     hero_b64 = get_image_base64(HERO_IMG_PATH)
     bg_style = (
         f"linear-gradient(to right, rgba(17, 31, 23, 0.94) 0%, rgba(17, 31, 23, 0.82) 42%, rgba(17, 31, 23, 0.35) 75%, rgba(17, 31, 23, 0.15) 100%), url('data:image/jpeg;base64,{hero_b64}')"
         if hero_b64
         else "linear-gradient(135deg, #15241C, #2D5A43)"
+    )
+
+    user_name = current_user.get("full_name") if current_user else ""
+    first_name = user_name.split()[0] if user_name else ""
+    greeting_pill = (
+        f"""<div style="margin-bottom: 8px; font-size: 1.1rem; color: #A3D4B6; font-weight: 700;">Good day, {first_name} 👋</div>"""
+        if first_name
+        else ""
     )
 
     # 1. Landing Page Hero
@@ -36,6 +44,7 @@ def render_dashboard_page():
                     <span style="width: 7px; height: 7px; border-radius: 50%; background: #52C480; box-shadow: 0 0 10px #52C480;"></span>
                     <span>AI-Powered Real Estate Intelligence</span>
                 </div>
+                {greeting_pill}
                 <h1 class="hero-title-main">Find Your Place.<br><span>Understand Its Value.</span></h1>
                 <p class="hero-sub-p">
                     DwellIQ combines machine learning on 177,000+ real estate transactions across 80+ Indian cities with comprehensive financial analytics, nearby infrastructure mapping, and an intelligent advisory assistant.

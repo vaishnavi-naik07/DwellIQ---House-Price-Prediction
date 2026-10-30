@@ -2,13 +2,19 @@ import streamlit as st
 
 
 def render_brand_header(current_user=None):
-    """Render top brand bar with logo, brand title, and user profile badge."""
+    """Render top brand bar with logo, brand title, and personalised user profile badge."""
     user_html = ""
     if current_user:
         user_name = current_user.get("full_name", "Verified Member")
+        first_name = user_name.split()[0] if user_name else "User"
         user_html = f"""
-        <div style="background: #EEF3ED; border: 1px solid #D8E2D7; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; color: #2D5A43;">
-            👤 {user_name}
+        <div style="display: flex; align-items: center; gap: 10px; background: #EEF3ED; border: 1px solid #D8E2D7; padding: 6px 14px; border-radius: 24px;">
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: #2D5A43; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;">
+                {first_name[0].upper()}
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #18261E;">
+                {user_name}
+            </div>
         </div>
         """
 
@@ -48,9 +54,9 @@ def render_footer():
                 </div>
             </div>
             <div style="display: flex; gap: 18px; font-size: 0.8rem; margin-top: 8px;">
-                <span>🎯 Random Forest Regressor</span>
-                <span>📊 177K+ Records Analyzed</span>
-                <span>🛡️ RERA Compliant Metrics</span>
+                <span>🔒 PBKDF2 Secure Auth</span>
+                <span>📊 Verified RF Pipeline</span>
+                <span>🗺️ OpenStreetMap POI</span>
             </div>
         </div>
         """,
@@ -58,16 +64,16 @@ def render_footer():
     )
 
 
-def render_section_header(eyebrow: str, title: str, subtitle: str = ""):
-    """Render clean, consistent editorial section header."""
+def render_section_header(eyebrow: str, title: str, description: str = ""):
+    """Render standard editorial section heading."""
+    desc_html = f'<div class="section-description-text">{description}</div>' if description else ''
     st.markdown(
         f"""
         <div class="section-header-box">
             <div class="section-eyebrow-text">{eyebrow}</div>
             <div class="section-heading-text">{title}</div>
-            {f'<div class="section-description-text">{subtitle}</div>' if subtitle else ''}
+            {desc_html}
         </div>
         """,
         unsafe_allow_html=True,
     )
-

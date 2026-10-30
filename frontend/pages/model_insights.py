@@ -88,20 +88,6 @@ def render_model_insights_page():
             fallback_msg="Model comparison plot not generated yet.",
         )
 
-    # Honest Limitations Discussion
-    st.markdown("---")
-    st.markdown("#### Honest Discussion of Model Limitations (For College Viva & Review)")
-    st.markdown(
-        """
-        - **Why is R² low (~0.026)?**
-          Open web-scraped real-estate data includes massive price dispersion: ultra-luxury villas and penthouses priced at ₹20–50+ Cr coexist with budget 1 BHK suburban apartments. Additionally, critical valuation determinants (such as developer reputation, exact road frontage, interior finish quality, view of sea/garden) are unobserved in basic tabular metadata.
-        - **Why Random Forest outperforms Linear Regression:**
-          The decision forest captures non-linear thresholds (e.g., location premium multiplier depending on carpet area) and handles high-cardinality categorical variables via frequency encoding and one-hot encoding without suffering from multicollinearity.
-        - **Data Quality Safeguards:**
-          Missing numerical attributes (carpet area, bathrooms) are imputed using robust median statistics, and categorical variables are imputed with mode followed by `handle_unknown='ignore'` encoders to prevent production crashes on unseen input values.
-        """
-    )
-
 
 def render_insights_page():
     """Alias for backwards compatibility."""

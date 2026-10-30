@@ -19,7 +19,11 @@ from backend.services.chatbot_service import (
 )
 
 
-def render_ai_assistant_page():
+def render_ai_assistant_page(current_user=None):
+    user_name = current_user.get("full_name") if current_user else ""
+    first_name = user_name.split()[0] if user_name else ""
+    user_greeting = f"Hi {first_name}! " if first_name else "👋 Welcome! "
+
     # 1. Page Header & AI Status Indicator
     render_section_header(
         "DwellIQ AI Platform",
@@ -56,7 +60,7 @@ def render_ai_assistant_page():
             {
                 "role": "assistant",
                 "content": (
-                    "👋 Welcome! I am **DwellIQ AI — Your Personal Property Advisor**.\n\n"
+                    f"{user_greeting}I am **DwellIQ AI — Your Personal Property Advisor**.\n\n"
                     "I can help you navigate Indian residential real estate:\n"
                     "• **Break down and explain property valuations**\n"
                     "• **Assess personal budget & affordability (30/40 rule)**\n"

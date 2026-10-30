@@ -23,6 +23,7 @@ def setup_page():
 
 from frontend.components.navbar import render_brand_header, render_footer
 from frontend.components.sidebar import render_sidebar
+from frontend.pages.auth import render_full_auth_page
 from frontend.pages.dashboard import render_dashboard_page
 from frontend.pages.estimate_property import render_estimate_property_page
 from frontend.pages.ai_assistant import render_ai_assistant_page
@@ -35,19 +36,28 @@ from frontend.pages.model_insights import render_model_insights_page
 def main():
     setup_page()
 
-    # 1. Sidebar Navigation & Account Widget
+    # 1. Check Authentication Gate
+    current_user = st.session_state.get("authenticated_user")
+
+    if not current_user:
+        # User is not logged in: display dedicated Full-Page Signup/Login experience
+        render_full_auth_page()
+        render_footer()
+        return
+
+    # 2. Authenticated: Render Sidebar Navigation & Account Widget
     active_page, current_user = render_sidebar()
 
-    # 2. Top Brand Header / Navbar
+    # 3. Top Brand Header / Navbar with Personalized User Profile
     render_brand_header(current_user=current_user)
 
-    # 3. Route to active page
+    # 4. Route to active protected page
     if active_page == "Overview Dashboard":
-        render_dashboard_page()
+        render_dashboard_page(current_user=current_user)
     elif active_page == "Estimate a Property":
         render_estimate_property_page(current_user=current_user)
     elif active_page in ["DwellIQ AI Advisor", "AI Property Assistant"]:
-        render_ai_assistant_page()
+        render_ai_assistant_page(current_user=current_user)
     elif active_page == "Nearby Essentials":
         render_nearby_essentials_page()
     elif active_page == "Compare Properties":
@@ -57,7 +67,7 @@ def main():
     elif active_page == "Model Insights":
         render_model_insights_page()
 
-    # 4. Global Footer
+    # 5. Global Footer
     render_footer()
 
 
